@@ -102,7 +102,7 @@ aws_secret_access_key = st.secrets["aws"]["aws_secret_access_key"]
 aws_region = st.secrets["aws"]["region_name"]
 
 # Langchain stuff
-llm = ChatOpenAI(model="gpt-3.5-turbo", openai_api_key=OPENAI_API_KEY)
+llm = ChatOpenAI(model="gpt-4o", openai_api_key=OPENAI_API_KEY)
 
 # Initialize the conversation memory
 memory = ConversationBufferMemory()
