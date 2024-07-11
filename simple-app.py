@@ -153,9 +153,14 @@ rag_chain = (
     | llm
 )
 
+session_id = str(uuid.uuid4())
+bucket_name = "bc-chat-history"
+chat_history_key = f"raw-data/chat_history_{session_id}.txt"
+
 # Initialize chat history
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
+    chat_history = f"\nSession ID: {session_id}\n"
 
 # Display chat messages from history
 for message in st.session_state["messages"]:
@@ -181,3 +186,10 @@ if user_input:
     
     with st.chat_message("assistant"):
         st.markdown(bot_response)
+        
+#chat_history += f"You: {user_input}\nAI: {bot_response}\n"
+local_filename = f"./history/chat_history_{session_id}.txt"
+save_chat_history_to_file(local_filename, ''.join(str(x) for x in st.session_state["messages"]))
+
+upload_file_to_s3(bucket_name, chat_history_key, local_filename)
+print(f"Chat history saved and uploaded to S3 as '{chat_history_key}' in bucket '{bucket_name}'")
