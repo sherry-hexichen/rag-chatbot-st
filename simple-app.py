@@ -156,7 +156,6 @@ rag_chain = (
 # Initialize chat history
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
-    chat_history = f"\nSession ID: {session_id}\n"
 
 # Display chat messages from history
 for message in st.session_state["messages"]:
@@ -186,6 +185,7 @@ if user_input:
 
 session_id = str(uuid.uuid4())
 bucket_name = "bc-chat-history"
+chat_history = f"\nSession ID: {session_id}\n"
 chat_history_key = f"raw-data/chat_history_{session_id}.txt"
 #chat_history += f"You: {user_input}\nAI: {bot_response}\n"
 local_filename = f"./history/chat_history_{session_id}.txt"
