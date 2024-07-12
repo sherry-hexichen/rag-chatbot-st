@@ -78,6 +78,11 @@ def save_chat_history_to_file(filename, history):
 def upload_file_to_s3(bucket, key, filename):
     s3_client.upload_file(filename, bucket, key)
 
+# Function to get chat history as text
+def get_chat_history_text(messages):
+    chat_history_text = "\n".join([f"{msg['role']}: {msg['content']}" for msg in messages])
+    return chat_history_text
+
 # Example usage with memory
 def ask_question(query, chain, llm):
     # Retrieve and format the response with pre-signed URLs
@@ -157,6 +162,22 @@ rag_chain = (
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
 
+# Sidebar for chat history and download button
+st.sidebar.title("Chat History")
+for i, message in enumerate(st.session_state["messages"]):
+    with st.sidebar.expander(f"Message {i+1} - {message['role']}"):
+        st.write(message["content"])
+
+# Download chat history as text file
+if st.sidebar.button("Download Chat History"):
+    chat_history_text = get_chat_history_text(st.session_state["messages"])
+    st.sidebar.download_button(
+        label="Download",
+        data=chat_history_text,
+        file_name="chat_history.txt",
+        mime="text/plain"
+    )
+
 # Display chat messages from history
 for message in st.session_state["messages"]:
     with st.chat_message(message["role"]):
@@ -175,21 +196,10 @@ if user_input:
     
     # Generate and display bot response
     with st.spinner("Thinking..."):
+        chat_history = "\n".join([f"{msg['role']}: {msg['content']}" for msg in st.session_state["messages"]])
         bot_response = retrieve_and_format_response(user_input, retriever, llm).content
     
     st.session_state["messages"].append({"role": "assistant", "content": bot_response})
     
     with st.chat_message("assistant"):
         st.markdown(bot_response)
-
-
-session_id = str(uuid.uuid4())
-bucket_name = "bc-chat-history"
-chat_history = f"\nSession ID: {session_id}\n"
-chat_history_key = f"raw-data/chat_history_{session_id}.txt"
-#chat_history += f"You: {user_input}\nAI: {bot_response}\n"
-local_filename = f"./history/chat_history_{session_id}.txt"
-save_chat_history_to_file(local_filename, ''.join(str(x) for x in st.session_state["messages"]))
-
-upload_file_to_s3(bucket_name, chat_history_key, local_filename)
-print(f"Chat history saved and uploaded to S3 as '{chat_history_key}' in bucket '{bucket_name}'")
